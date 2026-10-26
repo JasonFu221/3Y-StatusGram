@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Ed - Form 3 ESL Social Learning Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        .dark .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 9999px; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased transition-colors duration-200">
+
+    <!-- TOP HEADER -->
+    <header class="sticky top-0 z-40 w-full glass-panel border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-indigo-500/20">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400">Status Ed</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Form 3 ESL Social Roleplay</p>
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <button id="aiTriggerBtn" onclick="triggerAIDiscussion()" class="px-3 py-1.5 rounded-lg bg-violet-600/10 hover:bg-violet-600/20 text-violet-600 dark:text-violet-300 border border-violet-500/30 text-xs sm:text-sm font-semibold flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-robot text-violet-500 animate-pulse"></i>
+                    <span class="hidden sm:inline">Trigger AI Discussion</span>
+                </button>
+                <button onclick="toggleTeacherModal()" class="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs sm:text-sm font-semibold flex items-center space-x-1.5 transition">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span class="hidden sm:inline">Teacher Panel</span>
+                </button>
+                <div id="userProfileBadge" class="hidden flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                    <span id="userBadgeAvatar" class="text-base">🎓</span>
+                    <span id="userBadgeName" class="text-xs font-bold text-slate-700 dark:text-slate-200">Seat --</span>
+                    <span id="userBadgeXP" class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 font-extrabold">0 XP</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT SIDEBAR: User Switcher & Target Vocab -->
+        <aside class="lg:col-span-3 space-y-6">
+            <!-- Seat Selection Panel -->
+            <div class="glass-panel rounded-2xl p-4 shadow-sm">
+                <h2 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-users text-indigo-500 mr-2"></i> Select Your Seat</span>
+                    <span class="text-xs text-slate-400 font-normal">Form 3 Class</span>
+                </h2>
+                <div class="grid grid-cols-6 gap-2 mb-4" id="seatGrid">
+                    <!-- 18 Seat buttons generated dynamically -->
+                </div>
+                <div id="userCustomizer" class="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800 hidden">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">Student Name / Nickname:</label>
+                        <input type="text" id="customNameInput" placeholder="Enter Full Name or Nickname..." class="w-full text-xs px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex space-x-1" id="avatarPicker">
+                            <button onclick="setAvatar('🎓')" class="text-lg hover:scale-125 transition">🎓</button>
+                            <button onclick="setAvatar('🚀')" class="text-lg hover:scale-125 transition">🚀</button>
+                            <button onclick="setAvatar('🌟')" class="text-lg hover:scale-125 transition">🌟</button>
+                            <button onclick="setAvatar('🎨')" class="text-lg hover:scale-125 transition">🎨</button>
+                            <button onclick="setAvatar('🦊')" class="text-lg hover:scale-125 transition">🦊</button>
+                        </div>
+                        <button onclick="saveUserProfile()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow">Save Name & Avatar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Vocabulary Drawer -->
+            <div class="glass-panel rounded-2xl p-4 shadow-sm">
+                <h2 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-book-bookmark text-emerald-500 mr-2"></i> Target Vocab Bank</span>
+                    <span class="text-xs bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold">+15 XP ea</span>
+                </h2>
+                <div id="vocabList" class="flex flex-wrap gap-1.5">
+                    <!-- Vocab Chips populated via JS -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER FEED: Prompts, Composer & Posts -->
+        <section class="lg:col-span-6 space-y-6">
+            <!-- Active Prompt Banner -->
+            <div class="glass-panel rounded-2xl p-5 border-l-4 border-l-indigo-500 shadow-sm relative overflow-hidden">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-md">Prompt of the Day</span>
+                    <button onclick="triggerAIPostExemplar()" class="text-xs text-violet-600 dark:text-violet-400 font-semibold hover:underline flex items-center space-x-1">
+                        <i class="fa-solid fa-sparkles"></i>
+                        <span>Generate AI Exemplar</span>
+                    </button>
+                </div>
+                <h3 id="promptTitle" class="text-base font-bold text-slate-800 dark:text-slate-100">Should high school students wear uniforms?</h3>
+                <p id="promptDesc" class="text-xs text-slate-500 dark:text-slate-400 mt-1">Express your opinion clearly using formal ESL connectors and at least 2 target vocabulary words.</p>
+            </div>
+
+            <!-- Composer Box -->
+            <div class="glass-panel rounded-2xl p-4 shadow-sm space-y-3">
+                <div class="flex items-center space-x-3">
+                    <span id="composerAvatar" class="text-2xl">🎓</span>
+                    <span id="composerName" class="text-xs font-bold text-slate-700 dark:text-slate-300">Form 3 Student</span>
+                </div>
+
+                <!-- Sentence Starters Scaffolding -->
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Sentence Starters (Click to insert)</span>
+                    <div class="flex flex-wrap gap-1.5" id="sentenceStarters">
+                        <button onclick="insertStarter('In my opinion, ')" class="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 transition">In my opinion...</button>
+                        <button onclick="insertStarter('I strongly believe that ')" class="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 transition">I strongly believe...</button>
+                        <button onclick="insertStarter('Furthermore, we should consider ')" class="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 transition">Furthermore...</button>
+                        <button onclick="insertStarter('To solve this issue, I propose ')" class="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 transition">To solve this issue...</button>
+                    </div>
+                </div>
+
+                <!-- Textarea -->
+                <textarea id="postInput" oninput="evaluatePostRealtime()" rows="3" class="w-full text-sm p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none" placeholder="Share your response with your class..."></textarea>
+
+                <!-- Post Live Score Indicator -->
+                <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex items-center space-x-3 text-slate-500 dark:text-slate-400" id="liveScorePanel">
+                        <span>Vocab Used: <b id="scoreVocabCount" class="text-indigo-600 dark:text-indigo-400">0</b></span>
+                        <span>Est. XP: <b id="scoreEstXP" class="text-emerald-600 dark:text-emerald-400">10</b></span>
+                    </div>
+                    <button onclick="publishPost()" class="px-5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs rounded-xl shadow-md transition">Publish Post</button>
+                </div>
+            </div>
+
+            <!-- Feed Header -->
+            <div class="flex items-center justify-between px-1">
+                <h2 class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center space-x-2">
+                    <i class="fa-solid fa-stream text-indigo-500"></i>
+                    <span>Live Class Feed</span>
+                </h2>
+                <span class="text-xs text-slate-400" id="postCountLabel">Loading feed...</span>
+            </div>
+
+            <!-- Posts List -->
+            <div id="postsFeed" class="space-y-4">
+                <!-- Posts dynamically rendered here -->
+            </div>
+        </section>
+
+        <!-- RIGHT SIDEBAR: AI NPCs & Leaderboard -->
+        <aside class="lg:col-span-3 space-y-6">
+            <!-- AI Student Peer Models List -->
+            <div class="glass-panel rounded-2xl p-4 shadow-sm">
+                <h2 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-robot text-violet-500 mr-2"></i> AI Peer Models (12)</span>
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                </h2>
+                <div class="space-y-2 max-h-56 overflow-y-auto custom-scrollbar pr-1" id="npcList">
+                    <!-- 12 AI NPCs rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- Class Leaderboard -->
+            <div class="glass-panel rounded-2xl p-4 shadow-sm">
+                <h2 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-trophy text-amber-500 mr-2"></i> Class Leaderboard</span>
+                    <span class="text-xs text-slate-400">XP Points</span>
+                </h2>
+                <div class="space-y-2" id="leaderboardList">
+                    <!-- Dynamic Leaderboard -->
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- TEACHER MODAL -->
+    <div id="teacherModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-2">
+                    <i class="fa-solid fa-user-shield text-amber-500"></i>
+                    <span>Teacher Dashboard Panel</span>
+                </h3>
+                <button onclick="toggleTeacherModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="teacherAuthSection" class="space-y-3">
+                <p class="text-xs text-slate-500">Enter passcode to unlock controls:</p>
+                <input type="password" id="teacherPasscode" placeholder="Passcode (teacher123)" class="w-full text-sm p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                <button onclick="unlockTeacherMode()" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow">Unlock Panel</button>
+            </div>
+
+            <div id="teacherControlSection" class="space-y-4 hidden">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Update Prompt of the Day</label>
+                    <input type="text" id="editPromptTitle" placeholder="Prompt Title" class="w-full text-xs p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                    <textarea id="editPromptDesc" rows="2" placeholder="Prompt Description" class="w-full text-xs p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 resize-none"></textarea>
+                    <button onclick="saveNewPrompt()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg shadow">Publish New Prompt</button>
+                </div>
+
+                <!-- Teacher Roster Editor -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Teacher Roster Manager (Pre-assign Names)</label>
+                    <div class="flex space-x-2">
+                        <select id="teacherSeatSelect" class="text-xs p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                            <!-- Populated with S1 - S18 -->
+                        </select>
+                        <input type="text" id="teacherStudentName" placeholder="Assign Student Name..." class="flex-1 text-xs p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                    </div>
+                    <button onclick="assignStudentFromTeacher()" class="w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg shadow">Assign Name to Seat</button>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2">
+                    <button onclick="triggerAIDiscussion()" class="py-2 px-3 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-lg shadow flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-robot"></i>
+                        <span>Force AI NPCs Activity Cycle Now</span>
+                    </button>
+                    <button onclick="clearClassFeed()" class="py-2 px-3 bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 text-xs font-bold rounded-lg transition">Clear All Feed Posts</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE & APPLICATION LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { 
+            getFirestore, collection, doc, setDoc, addDoc, updateDoc, 
+            onSnapshot, serverTimestamp, arrayUnion, arrayRemove, query, orderBy 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        // Global Setup
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'status-ed-default';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo-key", authDomain: "demo.firebaseapp.com", projectId: "demo-project"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // State Variables
+        let currentUser = { seat: 1, name: "Student 1", avatar: "🎓", xp: 0 };
+        let seatRoster = {};
+        let activePrompt = {
+            title: "Should high school students wear uniforms?",
+            desc: "Express your opinion clearly using formal ESL connectors and at least 2 target vocabulary words."
+        };
+        let targetVocab = ["sustainable", "collaboration", "initiative", "strategy", "perspective", "significant", "analyze", "contribute"];
+        let postsData = [];
+
+        // 12 AI NPCS DEFINITIONS
+        const AI_NPCS = [
+            { id: "npc_1", name: "Alex Vance", avatar: "🤖", personality: "Analytical, passionate about sustainability and data." },
+            { id: "npc_2", name: "Maya Lin", avatar: "💡", personality: "Creative thinker, focuses on arts, collaboration, and social impact." },
+            { id: "npc_3", name: "Leo Sterling", avatar: "⚡", personality: "Enthusiastic debater, uses strong evidence and formal language." },
+            { id: "npc_4", name: "Chloe Bennett", avatar: "🌱", personality: "Empathetic, values student initiative and mental well-being." },
+            { id: "npc_5", name: "Lucas Chen", avatar: "🔬", personality: "Tech enthusiast, strategic and loves problem solving." },
+            { id: "npc_6", name: "Sophia Rossi", avatar: "🎨", personality: "Expressive writer, emphasizes perspective and creative strategy." },
+            { id: "npc_7", name: "Ethan Wright", avatar: "🏆", personality: "Goal-oriented, practical, focuses on career and discipline." },
+            { id: "npc_8", name: "Zara Ahmed", avatar: "🌍", personality: "Global mindset, curious about community initiatives and ethics." },
+            { id: "npc_9", name: "Noah Miller", avatar: "📘", personality: "Thoughtful editor, encourages peer ideas and gives detailed feedback." },
+            { id: "npc_10", name: "Emma Davis", avatar: "✨", personality: "Optimistic, uses diverse vocabulary and friendly tone." },
+            { id: "npc_11", name: "Oliver Taylor", avatar: "🧭", personality: "Logical, breaks down arguments step by step." },
+            { id: "npc_12", name: "Isabella Gomez", avatar: "🚀", personality: "Dynamic leader, motivates others to contribute ideas." }
+        ];
+
+        // INITIALIZE APP
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initAuth();
+            setupRosterListener();
+            renderSeats();
+            renderVocab();
+            renderNPCList();
+            setupFeedListener();
+            setupPromptListener();
+            populateTeacherSeatOptions();
+
+            // Background AI Activity Loop
+            setInterval(() => {
+                triggerAIBackgroundCycle();
+            }, 45000);
+        });
+
+        async function initAuth() {
+            try {
+                await signInAnonymously(auth);
+            } catch (err) {
+                console.warn("Auth initialization operating in fallback mode:", err);
+            }
+        }
+
+        // FIRESTORE PATH HELPERS (Always even segments for documents, odd for collections)
+        function getRosterDoc() {
+            return doc(db, 'artifacts', appId, 'public', 'data', 'roster', 'seat_assignments');
+        }
+
+        function getPromptDoc() {
+            return doc(db, 'artifacts', appId, 'public', 'data', 'prompts', 'active_prompt');
+        }
+
+        function getPostsCollection() {
+            return collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+        }
+
+        function setupRosterListener() {
+            onSnapshot(getRosterDoc(), (docSnap) => {
+                if (docSnap.exists()) {
+                    seatRoster = docSnap.data() || {};
+                    if (seatRoster[`seat_${currentUser.seat}`]) {
+                        currentUser.name = seatRoster[`seat_${currentUser.seat}`].name || currentUser.name;
+                        currentUser.avatar = seatRoster[`seat_${currentUser.seat}`].avatar || currentUser.avatar;
+                        updateProfileBadge();
+                    }
+                    renderSeats();
+                }
+            }, (error) => console.log("Roster listener notice:", error));
+        }
+
+        function setupPromptListener() {
+            onSnapshot(getPromptDoc(), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.title) {
+                        activePrompt.title = data.title;
+                        activePrompt.desc = data.desc || activePrompt.desc;
+                        document.getElementById('promptTitle').innerText = activePrompt.title;
+                        document.getElementById('promptDesc').innerText = activePrompt.desc;
+                    }
+                }
+            }, (error) => console.log("Prompt listener notice:", error));
+        }
+
+        function setupFeedListener() {
+            const q = query(getPostsCollection(), orderBy('createdAt', 'desc'));
+            onSnapshot(q, (snapshot) => {
+                postsData = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (!data.cleared) {
+                        postsData.push({ id: doc.id, ...data });
+                    }
+                });
+                renderPostsFeed();
+                renderLeaderboard();
+            }, (error) => console.log("Feed listener notice:", error));
+        }
+
+        // RENDER FUNCTIONS
+        function renderSeats() {
+            const grid = document.getElementById('seatGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            for (let i = 1; i <= 18; i++) {
+                const btn = document.createElement('button');
+                const isSelected = currentUser.seat === i;
+                const assignedData = seatRoster[`seat_${i}`];
+                const displayName = assignedData ? assignedData.name : `S${i}`;
+                const avatar = assignedData ? assignedData.avatar : '🎓';
+
+                btn.className = `p-1.5 rounded-xl text-[10px] font-bold transition flex flex-col items-center justify-center border truncate ${
+                    isSelected ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200'
+                }`;
+                btn.innerHTML = `<span class="text-xs">${avatar}</span><span class="truncate w-full text-center">${displayName}</span>`;
+                btn.onclick = () => selectSeat(i);
+                grid.appendChild(btn);
+            }
+        }
+
+        function renderVocab() {
+            const container = document.getElementById('vocabList');
+            if (!container) return;
+            container.innerHTML = targetVocab.map(w => `
+                <span onclick="insertStarter('${w} ')" class="cursor-pointer text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1 rounded-lg hover:scale-105 transition">
+                    ${w}
+                </span>
+            `).join('');
+        }
+
+        function renderNPCList() {
+            const container = document.getElementById('npcList');
+            if (!container) return;
+            container.innerHTML = AI_NPCS.map(npc => `
+                <div class="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition text-xs">
+                    <span class="text-base">${npc.avatar}</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-slate-700 dark:text-slate-200 truncate">${npc.name}</div>
+                        <div class="text-[10px] text-slate-400 truncate">${npc.personality}</div>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-400 border border-violet-300/30">AI Peer</span>
+                </div>
+            `).join('');
+        }
+
+        function renderPostsFeed() {
+            const feed = document.getElementById('postsFeed');
+            if (!feed) return;
+            document.getElementById('postCountLabel').innerText = `${postsData.length} Posts shared`;
+
+            if (postsData.length === 0) {
+                feed.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 glass-panel rounded-2xl">No posts in feed yet. Be the first student or click "Trigger AI Discussion"!</div>`;
+                return;
+            }
+
+            feed.innerHTML = postsData.map(post => {
+                const isNPC = post.isNPC;
+                const likes = post.likes || [];
+                const comments = post.comments || [];
+                const userHasLiked = likes.includes(auth.currentUser?.uid || `seat_${currentUser.seat}`);
+
+                return `
+                    <div class="glass-panel rounded-2xl p-4 shadow-sm space-y-3 border border-slate-200 dark:border-slate-800">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5">
+                                <span class="text-2xl">${post.authorAvatar || '🎓'}</span>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100">${post.authorName}</h4>
+                                        ${isNPC ? `<span class="px-2 py-0.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-extrabold text-[9px] rounded-full shadow-sm">AI Peer Model 🤖</span>` : ''}
+                                    </div>
+                                    <p class="text-[10px] text-slate-400">${post.authorSeat ? `Seat ${post.authorSeat} • ` : ''}${post.createdAt?.seconds ? new Date(post.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now'}</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-full">+${post.xpEarned || 10} XP</span>
+                        </div>
+
+                        <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-line">${post.content}</p>
+
+                        <!-- Actions bar -->
+                        <div class="flex items-center space-x-4 pt-2 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+                            <button onclick="window.toggleLikePost('${post.id}')" class="flex items-center space-x-1.5 font-semibold ${userHasLiked ? 'text-rose-500' : 'text-slate-400 hover:text-rose-500'} transition">
+                                <i class="${userHasLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                <span>${likes.length}</span>
+                            </button>
+                            <span class="text-slate-400 font-semibold flex items-center space-x-1">
+                                <i class="fa-regular fa-comment"></i>
+                                <span>${comments.length} Comments</span>
+                            </span>
+                        </div>
+
+                        <!-- Comments section -->
+                        <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            ${comments.map(c => `
+                                <div class="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-2.5 text-xs space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-1.5 font-bold text-slate-700 dark:text-slate-300">
+                                            <span>${c.avatar || '🎓'} ${c.author}</span>
+                                            ${c.isNPC ? `<span class="text-[8px] bg-violet-100 dark:bg-violet-950 text-violet-600 dark:text-violet-400 px-1.5 rounded font-extrabold">AI</span>` : ''}
+                                        </div>
+                                    </div>
+                                    <p class="text-slate-600 dark:text-slate-300 text-[11px]">${c.text}</p>
+                                </div>
+                            `).join('')}
+
+                            <!-- Add comment input -->
+                            <div class="flex space-x-2 pt-1">
+                                <input type="text" id="commentInput_${post.id}" placeholder="Reply to this post in English..." class="flex-1 text-xs px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none">
+                                <button onclick="window.addComment('${post.id}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow">Reply</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderLeaderboard() {
+            const userScores = {};
+
+            postsData.forEach(p => {
+                const key = p.authorName;
+                if (!userScores[key]) {
+                    userScores[key] = { name: p.authorName, avatar: p.authorAvatar, xp: 0, isNPC: p.isNPC };
+                }
+                userScores[key].xp += (p.xpEarned || 10);
+            });
+
+            const sorted = Object.values(userScores).sort((a,b) => b.xp - a.xp).slice(0, 5);
+            const container = document.getElementById('leaderboardList');
+            if (!container) return;
+
+            if (sorted.length === 0) {
+                container.innerHTML = `<div class="text-xs text-slate-400 text-center py-2">No active leaders yet.</div>`;
+                return;
+            }
+
+            container.innerHTML = sorted.map((u, index) => `
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/60 text-xs">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-extrabold w-4 text-center ${index === 0 ? 'text-amber-500' : index === 1 ? 'text-slate-400' : index === 2 ? 'text-amber-700' : 'text-slate-400'}">#${index+1}</span>
+                        <span>${u.avatar}</span>
+                        <span class="font-bold text-slate-700 dark:text-slate-200 truncate max-w-[100px]">${u.name}</span>
+                        ${u.isNPC ? `<span class="text-[8px] bg-violet-100 dark:bg-violet-950 text-violet-500 px-1 rounded">AI</span>` : ''}
+                    </div>
+                    <span class="font-bold text-indigo-600 dark:text-indigo-400">${u.xp} XP</span>
+                </div>
+            `).join('');
+        }
+
+        // USER ACTIONS & HELPERS
+        window.selectSeat = function(seatNum) {
+            currentUser.seat = seatNum;
+            const assigned = seatRoster[`seat_${seatNum}`];
+            currentUser.name = assigned ? assigned.name : `Student ${seatNum}`;
+            currentUser.avatar = assigned ? assigned.avatar : '🎓';
+
+            document.getElementById('userCustomizer').classList.remove('hidden');
+            document.getElementById('customNameInput').value = currentUser.name;
+            updateProfileBadge();
+            renderSeats();
+        };
+
+        window.setAvatar = function(av) {
+            currentUser.avatar = av;
+            updateProfileBadge();
+        };
+
+        window.saveUserProfile = async function() {
+            const val = document.getElementById('customNameInput').value.trim();
+            if (val) currentUser.name = val;
+            updateProfileBadge();
+
+            try {
+                await setDoc(getRosterDoc(), {
+                    [`seat_${currentUser.seat}`]: {
+                        name: currentUser.name,
+                        avatar: currentUser.avatar
+                    }
+                }, { merge: true });
+            } catch (err) {
+                console.error("Error saving profile:", err);
+            }
+        };
+
+        function updateProfileBadge() {
+            const badge = document.getElementById('userProfileBadge');
+            if (badge) badge.classList.remove('hidden');
+            document.getElementById('userBadgeAvatar').innerText = currentUser.avatar;
+            document.getElementById('userBadgeName').innerText = `Seat ${currentUser.seat}: ${currentUser.name}`;
+            document.getElementById('composerAvatar').innerText = currentUser.avatar;
+            document.getElementById('composerName').innerText = currentUser.name;
+        }
+
+        window.insertStarter = function(text) {
+            const input = document.getElementById('postInput');
+            if (!input) return;
+            input.value += (input.value ? ' ' : '') + text;
+            input.focus();
+            evaluatePostRealtime();
+        };
+
+        function populateTeacherSeatOptions() {
+            const select = document.getElementById('teacherSeatSelect');
+            if (!select) return;
+            select.innerHTML = '';
+            for (let i = 1; i <= 18; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.innerText = `Seat ${i}`;
+                select.appendChild(opt);
+            }
+        }
+
+        window.assignStudentFromTeacher = async function() {
+            const seatNum = document.getElementById('teacherSeatSelect').value;
+            const studentName = document.getElementById('teacherStudentName').value.trim();
+            if (!studentName) return;
+
+            try {
+                await setDoc(getRosterDoc(), {
+                    [`seat_${seatNum}`]: {
+                        name: studentName,
+                        avatar: '🎓'
+                    }
+                }, { merge: true });
+                document.getElementById('teacherStudentName').value = '';
+                alert(`Assigned "${studentName}" to Seat ${seatNum}`);
+            } catch(e) {
+                console.error("Teacher assignment error:", e);
+            }
+        };
+
+        window.evaluatePostRealtime = function() {
+            const text = document.getElementById('postInput').value.toLowerCase();
+            let vocabCount = 0;
+            targetVocab.forEach(v => {
+                if (text.includes(v)) vocabCount++;
+            });
+            const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+            const estXP = 10 + (vocabCount * 15) + (wordCount > 25 ? 10 : 0);
+
+            document.getElementById('scoreVocabCount').innerText = vocabCount;
+            document.getElementById('scoreEstXP').innerText = estXP;
+            return estXP;
+        };
+
+        window.publishPost = async function() {
+            const content = document.getElementById('postInput').value.trim();
+            if (!content) return;
+
+            const xpEarned = evaluatePostRealtime();
+
+            try {
+                await addDoc(getPostsCollection(), {
+                    authorName: currentUser.name,
+                    authorAvatar: currentUser.avatar,
+                    authorSeat: currentUser.seat,
+                    isNPC: false,
+                    content: content,
+                    xpEarned: xpEarned,
+                    likes: [],
+                    comments: [],
+                    createdAt: serverTimestamp()
+                });
+
+                document.getElementById('postInput').value = '';
+                evaluatePostRealtime();
+
+                setTimeout(() => triggerAIReplyToLatestPost(), 3000);
+            } catch (e) {
+                console.error("Error publishing post:", e);
+            }
+        };
+
+        window.toggleLikePost = async function(postId) {
+            const post = postsData.find(p => p.id === postId);
+            if (!post) return;
+            const uid = auth.currentUser?.uid || `seat_${currentUser.seat}`;
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+
+            try {
+                if ((post.likes || []).includes(uid)) {
+                    await updateDoc(postRef, { likes: arrayRemove(uid) });
+                } else {
+                    await updateDoc(postRef, { likes: arrayUnion(uid) });
+                }
+            } catch (e) {
+                console.error("Toggle like error:", e);
+            }
+        };
+
+        window.addComment = async function(postId) {
+            const input = document.getElementById(`commentInput_${postId}`);
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+            const commentObj = {
+                author: currentUser.name,
+                avatar: currentUser.avatar,
+                isNPC: false,
+                text: text,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await updateDoc(postRef, { comments: arrayUnion(commentObj) });
+                input.value = '';
+            } catch (e) {
+                console.error("Add comment error:", e);
+            }
+        };
+
+        // AI GENERATION AND SIMULATION (STAND-IN MODEL RESPONSES)
+        window.triggerAIDiscussion = async function() {
+            const btn = document.getElementById('aiTriggerBtn');
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-violet-500"></i> Generating AI Activity...`;
+
+            await triggerAIPostExemplar();
+            await triggerAIReplyToLatestPost();
+
+            btn.innerHTML = `<i class="fa-solid fa-robot text-violet-500"></i><span class="hidden sm:inline">Trigger AI Discussion</span>`;
+        };
+
+        window.triggerAIPostExemplar = async function() {
+            const randomNPC = AI_NPCS[Math.floor(Math.random() * AI_NPCS.length)];
+            const sampleResponses = [
+                `In my opinion, high school uniforms encourage collaboration among students. Furthermore, they provide a strategic way to diminish peer pressure so we can focus on significant academic goals.`,
+                `I strongly believe that uniforms foster a sustainable sense of equality in school. To solve this issue, we must analyze how dress codes contribute to reducing daily social distractions.`,
+                `Furthermore, wearing school uniforms encourages student initiative and unity. From my perspective, this strategy allows every student to contribute positively to our community.`
+            ];
+            const aiText = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
+
+            try {
+                await addDoc(getPostsCollection(), {
+                    authorName: randomNPC.name,
+                    authorAvatar: randomNPC.avatar,
+                    isNPC: true,
+                    content: aiText,
+                    xpEarned: 35,
+                    likes: [],
+                    comments: [],
+                    createdAt: serverTimestamp()
+                });
+            } catch(e) {
+                console.error("Error creating AI exemplar:", e);
+            }
+        };
+
+        async function triggerAIReplyToLatestPost() {
+            if (postsData.length === 0) return;
+            const targetPost = postsData[0];
+            const randomNPC = AI_NPCS[Math.floor(Math.random() * AI_NPCS.length)];
+
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', targetPost.id);
+            const feedbackSamples = [
+                "Great point! I really like how clearly you expressed your perspective using great target vocabulary.",
+                "I agree with your argument! Furthermore, your post shows very clear sentence structure.",
+                "Excellent idea! How do you think we can implement this strategy in our school?"
+            ];
+            const replyText = feedbackSamples[Math.floor(Math.random() * feedbackSamples.length)];
+
+            try {
+                await updateDoc(postRef, {
+                    likes: arrayUnion(randomNPC.id),
+                    comments: arrayUnion({
+                        author: randomNPC.name,
+                        avatar: randomNPC.avatar,
+                        isNPC: true,
+                        text: replyText,
+                        createdAt: new Date().toISOString()
+                    })
+                });
+            } catch(e) {
+                console.error("Error adding AI reply:", e);
+            }
+        }
+
+        async function triggerAIBackgroundCycle() {
+            if (Math.random() > 0.5) {
+                await triggerAIPostExemplar();
+            } else {
+                await triggerAIReplyToLatestPost();
+            }
+        }
+
+        // TEACHER DASHBOARD LOGIC
+        window.toggleTeacherModal = function() {
+            const modal = document.getElementById('teacherModal');
+            modal.classList.toggle('hidden');
+        };
+
+        window.unlockTeacherMode = function() {
+            const pass = document.getElementById('teacherPasscode').value;
+            if (pass === 'teacher123') {
+                document.getElementById('teacherAuthSection').classList.add('hidden');
+                document.getElementById('teacherControlSection').classList.remove('hidden');
+                document.getElementById('editPromptTitle').value = activePrompt.title;
+                document.getElementById('editPromptDesc').value = activePrompt.desc;
+            } else {
+                alert('Incorrect passcode!');
+            }
+        };
+
+        window.saveNewPrompt = async function() {
+            const title = document.getElementById('editPromptTitle').value.trim();
+            const desc = document.getElementById('editPromptDesc').value.trim();
+            if (!title) return;
+
+            try {
+                await setDoc(getPromptDoc(), { title, desc, updatedAt: serverTimestamp() });
+                toggleTeacherModal();
+                triggerAIPostExemplar();
+            } catch (e) {
+                console.error("Error updating prompt:", e);
+            }
+        };
+
+        window.clearClassFeed = async function() {
+            if (confirm("Are you sure you want to clear all posts from the feed?")) {
+                postsData.forEach(async (p) => {
+                    const ref = doc(db, 'artifacts', appId, 'public', 'data', 'posts', p.id);
+                    await setDoc(ref, { cleared: true }, { merge: true });
+                });
+            }
+        };
+    </script>
+</body>
+</html>
